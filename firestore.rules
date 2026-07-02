@@ -18,6 +18,31 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // ---- Online presence (heartbeat) ----
+    match /presence/{uid} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // ---- Game invites / challenges ----
+    match /invites/{inviteId} {
+      // Sender and recipient can see the invite
+      allow read: if request.auth != null && (
+        resource.data.to == request.auth.uid ||
+        resource.data.from.uid == request.auth.uid
+      );
+      // Only send invites as yourself, always starting as pending
+      allow create: if request.auth != null
+        && request.resource.data.from.uid == request.auth.uid
+        && request.resource.data.status == 'pending';
+      // Recipient accepts/declines; sender may cancel
+      allow update: if request.auth != null && (
+        resource.data.to == request.auth.uid ||
+        resource.data.from.uid == request.auth.uid
+      );
+      allow delete: if false;
+    }
+
     // ---- Games ----
     match /games/{gameId} {
       allow read: if request.auth != null;

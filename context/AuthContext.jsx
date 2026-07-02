@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { onAuthStateChanged, signInWithPopup, signOut } from "firebase/auth";
-import { doc, getDoc, setDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { doc, getDoc, setDoc, updateDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, googleProvider } from "@/lib/firebase";
 import { START_RATING } from "@/lib/chessGame";
 
@@ -60,6 +60,33 @@ export function AuthProvider({ children }) {
     const snap = await getDoc(doc(db, "users", auth.currentUser.uid));
     if (snap.exists()) setProfile(snap.data());
   }, []);
+
+  // ---- Presence heartbeat: lets other players see who's online ----
+  useEffect(() => {
+    if (!user || !profile || !db) return;
+    const ref = doc(db, "presence", user.uid);
+    const beat = () =>
+      setDoc(
+        ref,
+        {
+          uid: user.uid,
+          name: profile.name,
+          photo: profile.photo,
+          rating: profile.rating,
+          lastSeen: serverTimestamp(),
+        },
+        { merge: true }
+      ).catch(() => {});
+    beat();
+    const t = setInterval(beat, 45000);
+    const onFocus = () => beat();
+    window.addEventListener("focus", onFocus);
+    return () => {
+      clearInterval(t);
+      window.removeEventListener("focus", onFocus);
+      deleteDoc(ref).catch(() => {}); // best-effort "went offline" on sign-out/unmount
+    };
+  }, [user, profile]);
 
   const login = useCallback(async () => {
     if (!auth) throw new Error("Firebase is not configured — see README.md");

@@ -193,3 +193,14 @@ select.tc-select { flex: initial; }
   border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 0.9rem;
 }
 .chat-input-row input:disabled { opacity: 0.5; }
+
+/* ---------- online players & invites ---------- */
+.online-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--baize-bright); box-shadow: 0 0 6px var(--baize-bright); flex-shrink: 0; }
+.online-count { color: var(--baize-bright); }
+.invite-banner {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px; margin-bottom: 14px;
+  border-color: var(--brass); flex-wrap: wrap;
+  animation: invite-in 0.25s ease-out;
+}
+.invite-banner .nm { flex: 1; min-width: 140px; font-size: 0.92rem; }
+@keyframes invite-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }

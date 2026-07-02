@@ -6,6 +6,8 @@ import { isFirebaseConfigured } from "@/lib/firebase";
 import { GoogleButton, Spinner, useToast } from "@/components/ui";
 import Lobby from "@/components/Lobby";
 import Leaderboard from "@/components/Leaderboard";
+import OnlinePlayers from "@/components/OnlinePlayers";
+import InviteWatcher from "@/components/InviteWatcher";
 
 export default function Home() {
   const { user, profile, loading, login, logout } = useAuth();
@@ -65,16 +67,23 @@ export default function Home() {
         </button>
       </header>
 
+      <InviteWatcher toast={toast} />
+
       <div className="tabs">
         <button className={tab === "play" ? "active" : ""} onClick={() => setTab("play")}>
           Play
         </button>
+        <button className={tab === "players" ? "active" : ""} onClick={() => setTab("players")}>
+          Players
+        </button>
         <button className={tab === "lb" ? "active" : ""} onClick={() => setTab("lb")}>
-          Leaderboard
+          Leaders
         </button>
       </div>
 
-      {tab === "play" ? <Lobby toast={toast} /> : <Leaderboard />}
+      {tab === "play" && <Lobby toast={toast} />}
+      {tab === "players" && <OnlinePlayers toast={toast} />}
+      {tab === "lb" && <Leaderboard />}
       {toastNode}
     </>
   );
