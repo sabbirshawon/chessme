@@ -46,6 +46,16 @@ export default function Lobby({ toast }) {
 
   return (
     <div>
+      <div className="section-label">Practice</div>
+      <div className="card queue-card">
+        <div className="glyph">🤖</div>
+        <div className="info">
+          <b>Play vs Computer</b>
+          <span>3 difficulty levels · no rating changes</span>
+        </div>
+        <button className="btn small" onClick={() => router.push("/computer")}>Play</button>
+      </div>
+
       <div className="section-label">Private game</div>
       <div className="card queue-card">
         <div className="glyph">♛</div>
