@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---- User profiles ----
+    match /users/{uid} {
+      // Anyone signed in can read profiles (needed for the leaderboard)
+      allow read: if request.auth != null;
+      // A user may create their own profile
+      allow create: if request.auth != null && request.auth.uid == uid;
+      // Updates: your own profile, OR a rating/stat update written by your
+      // opponent when a shared game finishes (client-side Elo).
+      allow update: if request.auth != null && (
+        request.auth.uid == uid ||
+        request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['rating', 'played', 'won'])
+      );
+      allow delete: if false;
+    }
+
+    // ---- Games ----
+    match /games/{gameId} {
+      allow read: if request.auth != null;
+      // Creator makes the game and starts as white
+      allow create: if request.auth != null
+        && request.resource.data.white.uid == request.auth.uid
+        && request.resource.data.status == 'waiting';
+      // Either seated player may update; a signed-in user may also update a
+      // 'waiting' game in order to take the black seat.
+      allow update: if request.auth != null && (
+        resource.data.white.uid == request.auth.uid ||
+        (resource.data.black != null && resource.data.black.uid == request.auth.uid) ||
+        resource.data.status == 'waiting'
+      );
+      // Only the creator can cancel their own unstarted game
+      allow delete: if request.auth != null
+        && resource.data.createdBy == request.auth.uid
+        && resource.data.status == 'waiting';
+    }
+  }
+}
