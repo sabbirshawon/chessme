@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Chess } from "chess.js";
 import { useAuth } from "@/context/AuthContext";
 import { bestMove } from "@/lib/bot";
+import { playCheckmate } from "@/lib/sounds";
 import Board from "@/components/Board";
 import CapturedPieces from "@/components/CapturedPieces";
 
@@ -25,6 +26,7 @@ export default function ComputerPage() {
   const [targets, setTargets] = useState([]);
   const [thinking, setThinking] = useState(false);
   const botTimer = useRef(null);
+  const soundPlayed = useRef(false);
 
   const chess = useMemo(() => new Chess(fen), [fen]);
   const botColor = mine === "w" ? "b" : "w";
@@ -38,6 +40,7 @@ export default function ComputerPage() {
     setHistory([]);
     setSelected(null);
     setTargets([]);
+    soundPlayed.current = false;
     setStarted(true);
   }
 
@@ -63,6 +66,15 @@ export default function ComputerPage() {
     }, 400); // brief pause so it feels like it's thinking
     return () => clearTimeout(botTimer.current);
   }, [started, fen, over, botColor, difficulty, chess]);
+
+  // Checkmate sound — plays once per game
+  useEffect(() => {
+    if (!started || !over) return;
+    if (chess.isCheckmate() && !soundPlayed.current) {
+      soundPlayed.current = true;
+      playCheckmate(chess.turn() === botColor); // side to move is the one mated
+    }
+  }, [over, started, chess, botColor]);
 
   function tapSquare(sq) {
     if (!isMyTurn) return;

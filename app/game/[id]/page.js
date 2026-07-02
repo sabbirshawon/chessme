@@ -13,6 +13,7 @@ import Board from "@/components/Board";
 import CapturedPieces from "@/components/CapturedPieces";
 import Chat from "@/components/Chat";
 import { GoogleButton, Spinner, useToast } from "@/components/ui";
+import { playCheckmate } from "@/lib/sounds";
 
 export default function GamePage() {
   const { id: gameId } = useParams();
@@ -130,9 +131,17 @@ export default function GamePage() {
     refreshProfile();
   }, [gameId, refreshProfile]);
 
+ const soundPlayed = useRef(false);
+
   useEffect(() => {
-    if (game?.status === "finished") applyRatings();
-  }, [game?.status, applyRatings]);
+    if (game?.status === "finished") {
+      applyRatings();
+      if (game.result === "checkmate" && !soundPlayed.current) {
+        soundPlayed.current = true;
+        playCheckmate(game.winner === mine);
+      }
+    }
+  }, [game?.status, game?.result, game?.winner, mine, applyRatings]);
 
   // flag fall — either client may record it; the transaction prevents doubles
   useEffect(() => {
