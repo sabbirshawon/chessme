@@ -10,6 +10,8 @@ import { db } from "@/lib/firebase";
 import { useAuth } from "@/context/AuthContext";
 import { playerStub, claimSeat, eloDelta, fmtClock } from "@/lib/chessGame";
 import Board from "@/components/Board";
+import CapturedPieces from "@/components/CapturedPieces";
+import Chat from "@/components/Chat";
 import { GoogleButton, Spinner, useToast } from "@/components/ui";
 
 export default function GamePage() {
@@ -288,7 +290,11 @@ export default function GamePage() {
         </div>
       </div>
 
+      <CapturedPieces chess={chess} color={oppColor} />
+
       <Board chess={chess} mine={mine} lastMove={lastMove} selected={selected} targets={targets} onTap={tapSquare} />
+
+      <CapturedPieces chess={chess} color={mine} />
 
       <div className="player-bar">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -326,6 +332,8 @@ export default function GamePage() {
           <button className="btn small" onClick={() => router.push("/")}>Back to lobby</button>
         </div>
       )}
+
+      <Chat gameId={gameId} canChat={game.white?.uid === user.uid || game.black?.uid === user.uid} />
       {toastNode}
     </>
   );

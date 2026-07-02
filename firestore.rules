@@ -36,6 +36,22 @@ service cloud.firestore {
       allow delete: if request.auth != null
         && resource.data.createdBy == request.auth.uid
         && resource.data.status == 'waiting';
+
+      // ---- In-game chat ----
+      match /chat/{msgId} {
+        allow read: if request.auth != null;
+        // Only the two seated players may send messages, as themselves
+        allow create: if request.auth != null
+          && request.resource.data.uid == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 300
+          && (
+            get(/databases/$(database)/documents/games/$(gameId)).data.white.uid == request.auth.uid ||
+            get(/databases/$(database)/documents/games/$(gameId)).data.black.uid == request.auth.uid
+          );
+        allow update, delete: if false;
+      }
     }
   }
 }
